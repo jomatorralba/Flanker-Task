@@ -1,0 +1,555 @@
+<html><head><base href="https://jomatorralba.github.io/focus-grid/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flanker Task - Attention Assessment</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        h1, h2 {
+            color: #2c3e50;
+            font-weight: 300;
+        }
+        h1 {
+            font-size: 2.5em;
+        }
+        h2 {
+            font-size: 1.8em;
+        }
+        #stimulusArea {
+            width: 100%;
+            height: 80vh;
+            margin: 20px auto;
+            position: relative;
+            background-color: #f0f8ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .stimulus {
+            position: absolute;
+            width: 20vw;
+            height: 20vw;
+            max-width: 150px;
+            max-height: 150px;
+            background-color: #2ecc71;
+            display: none;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        #left {
+            left: 10%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        #right {
+            right: 10%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        #cue {
+            font-size: 15vw;
+            font-weight: bold;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            font-family: 'Roboto', sans-serif;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        input {
+            margin: 5px;
+            padding: 5px;
+            border: 1px solid #bdc3c7;
+            border-radius: 3px;
+            font-family: 'Roboto', sans-serif;
+        }
+        #results, #controls, #instructions {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .chartContainer {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        .fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f8ff;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #responseButtons {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            position: absolute;
+            bottom: 20px;
+        }
+        .responseButton {
+            font-size: 24px;
+            padding: 15px 30px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .responseButton:hover {
+            background-color: #2980b9;
+        }
+        .resultSummary {
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: left;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        .resultSummary p {
+            margin: 10px 0;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .highlight {
+            font-weight: bold;
+            color: #2980b9;
+        }
+        #languageToggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1001;
+        }
+        .lang-button {
+            padding: 5px 10px;
+            margin: 0 5px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .lang-button:hover, .lang-button.active {
+            background-color: #2980b9;
+        }
+        label {
+            font-weight: 300;
+        }
+    </style>
+</head>
+<body>
+    <div id="languageToggle">
+        <button class="lang-button" onclick="changeLanguage('en')">EN</button>
+        <button class="lang-button active" onclick="changeLanguage('es')">ES</button>
+    </div>
+    <div class="container">
+        <h1>Flanker Task</h1>
+        <div id="controls">
+            <label for="trials" data-en="Number of trials:" data-es="Número de ensayos:">Número de ensayos:</label>
+            <input type="number" id="trials" min="1" value="20"><br>
+            <label for="cueDuration" data-en="Cue duration (ms):" data-es="Duración de la señal (ms):">Duración de la señal (ms):</label>
+            <input type="number" id="cueDuration" min="100" value="500"><br>
+            <label for="stimulusDuration" data-en="Stimulus duration (ms):" data-es="Duración del estímulo (ms):">Duración del estímulo (ms):</label>
+            <input type="number" id="stimulusDuration" min="100" value="1000"><br>
+            <label for="isi" data-en="Inter-stimulus interval (ms):" data-es="Intervalo entre estímulos (ms):">Intervalo entre estímulos (ms):</label>
+            <input type="number" id="isi" min="500" value="2000"><br>
+            <button onclick="showInstructions()" data-en="Start Task" data-es="Iniciar Tarea">Iniciar Tarea</button>
+        </div>
+        <div id="instructions" style="display:none;">
+            <h2 data-en="Instructions" data-es="Instrucciones">Instrucciones</h2>
+            <p data-en="1. Focus your attention on the center of the screen." data-es="1. Enfoca tu atención en el centro de la pantalla.">1. Enfoca tu atención en el centro de la pantalla.</p>
+            <p data-en="2. An arrow (→ or ←) will briefly appear. This is a cue, but it won't always be correct." data-es="2. Aparecerá brevemente una flecha (→ o ←). Esta es una señal, pero no siempre será correcta.">2. Aparecerá brevemente una flecha (→ o ←). Esta es una señal, pero no siempre será correcta.</p>
+            <p data-en="3. After that, a green square will appear on the left or right." data-es="3. Después, aparecerá un cuadrado verde a la izquierda o a la derecha.">3. Después, aparecerá un cuadrado verde a la izquierda o a la derecha.</p>
+            <p data-en="4. Your task is to respond as quickly as possible when you see the green square." data-es="4. Tu tarea es responder lo más rápido posible cuando veas el cuadrado verde.">4. Tu tarea es responder lo más rápido posible cuando veas el cuadrado verde.</p>
+            <p data-en="5. If you're using a keyboard, press the left arrow key (←) if the square appears on the left, or the right arrow key (→) if it appears on the right." data-es="5. Si estás usando un teclado, presiona la tecla de flecha izquierda (←) si el cuadrado aparece a la izquierda, o la tecla de flecha derecha (→) si aparece a la derecha.">5. Si estás usando un teclado, presiona la tecla de flecha izquierda (←) si el cuadrado aparece a la izquierda, o la tecla de flecha derecha (→) si aparece a la derecha.</p>
+            <p data-en="6. If you're using a tablet or phone, tap directly on the green square when it appears or use the buttons at the bottom of the screen." data-es="6. Si estás usando una tableta o teléfono, toca directamente el cuadrado verde cuando aparezca o usa los botones en la parte inferior de la pantalla.">6. Si estás usando una tableta o teléfono, toca directamente el cuadrado verde cuando aparezca o usa los botones en la parte inferior de la pantalla.</p>
+            <p data-en="7. Avoid responding before the square appears, as it will be recorded as an error." data-es="7. Evita responder antes de que aparezca el cuadrado, ya que se registrará como un error.">7. Evita responder antes de que aparezca el cuadrado, ya que se registrará como un error.</p>
+            <button onclick="startTask()" data-en="Begin" data-es="Comenzar">Comenzar</button>
+        </div>
+        <div id="taskArea" style="display:none;">
+            <div id="stimulusArea">
+                <div id="left" class="stimulus" onclick="handleResponse('left')"></div>
+                <div id="right" class="stimulus" onclick="handleResponse('right')"></div>
+                <div id="cue"></div>
+            </div>
+            <div id="responseButtons">
+                <button class="responseButton" onclick="handleResponse('left')">←</button>
+                <button class="responseButton" onclick="handleResponse('right')">→</button>
+            </div>
+        </div>
+        <div id="results" style="display:none;">
+            <h2 data-en="Results" data-es="Resultados">Resultados</h2>
+            <div class="resultSummary">
+                <p><span class="highlight" data-en="Difference between incongruent and congruent times:" data-es="Diferencia entre tiempos incongruentes y congruentes:">Diferencia entre tiempos incongruentes y congruentes:</span> <span id="rtDifference"></span></p>
+                <p><span class="highlight" data-en="Early responses:" data-es="Respuestas anticipadas:">Respuestas anticipadas:</span> <span id="earlyResponsesCount"></span></p>
+                <p><span class="highlight" data-en="Errors in congruent trials:" data-es="Errores en ensayos congruentes:">Errores en ensayos congruentes:</span> <span id="congruentErrors"></span></p>
+                <p><span class="highlight" data-en="Errors in incongruent trials:" data-es="Errores en ensayos incongruentes:">Errores en ensayos incongruentes:</span> <span id="incongruentErrors"></span></p>
+                <p><span class="highlight" data-en="Total errors:" data-es="Errores totales:">Errores totales:</span> <span id="totalErrors"></span></p>
+            </div>
+            <div class="chartContainer">
+                <canvas id="reactionTimeChart"></canvas>
+            </div>
+            <div class="chartContainer">
+                <canvas id="accuracyChart"></canvas>
+            </div>
+            <div class="chartContainer">
+                <canvas id="timelineChart"></canvas>
+            </div>
+            <button onclick="resetTask()" data-en="Restart" data-es="Reiniciar">Reiniciar</button>
+        </div>
+    </div>
+
+    <script>
+        let trials, cueDuration, stimulusDuration, isi;
+        let currentTrial = 0;
+        let congruentRT = [];
+        let incongruentRT = [];
+        let congruentCorrect = 0;
+        let incongruentCorrect = 0;
+        let congruentTrials = 0;
+        let incongruentTrials = 0;
+        let startTime;
+        let reactionTimeChart, accuracyChart, timelineChart;
+        let allReactionTimes = [];
+        let targetSide;
+        let stimulusShown = false;
+        let earlyResponses = 0;
+        let currentCue;
+        let currentLanguage = 'es';
+
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            document.querySelectorAll('.lang-button').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent === lang.toUpperCase()) {
+                    btn.classList.add('active');
+                }
+            });
+            document.querySelectorAll('[data-en]').forEach(elem => {
+                elem.textContent = elem.getAttribute(`data-${lang}`);
+            });
+            updateChartLanguage();
+        }
+
+        function updateChartLanguage() {
+            if (reactionTimeChart) {
+                reactionTimeChart.data.labels = [
+                    currentLanguage === 'en' ? 'Congruent Trials' : 'Ensayos Congruentes',
+                    currentLanguage === 'en' ? 'Incongruent Trials' : 'Ensayos Incongruentes'
+                ];
+                reactionTimeChart.options.scales.y.title.text = currentLanguage === 'en' ? 'Reaction Time (ms)' : 'Tiempo de Reacción (ms)';
+                reactionTimeChart.update();
+            }
+            if (accuracyChart) {
+                accuracyChart.data.labels = [
+                    currentLanguage === 'en' ? 'Congruent Trials' : 'Ensayos Congruentes',
+                    currentLanguage === 'en' ? 'Incongruent Trials' : 'Ensayos Incongruentes'
+                ];
+                accuracyChart.options.scales.y.title.text = currentLanguage === 'en' ? 'Accuracy (%)' : 'Precisión (%)';
+                accuracyChart.update();
+            }
+            if (timelineChart) {
+                timelineChart.data.datasets[0].label = currentLanguage === 'en' ? 'Congruent Trials' : 'Ensayos Congruentes';
+                timelineChart.data.datasets[1].label = currentLanguage === 'en' ? 'Incongruent Trials' : 'Ensayos Incongruentes';
+                timelineChart.options.scales.y.title.text = currentLanguage === 'en' ? 'Reaction Time (ms)' : 'Tiempo de Reacción (ms)';
+                timelineChart.options.scales.x.title.text = currentLanguage === 'en' ? 'Trial Number' : 'Número de Ensayo';
+                timelineChart.update();
+            }
+        }
+
+        function showInstructions() {
+            document.getElementById('controls').style.display = 'none';
+            document.getElementById('instructions').style.display = 'block';
+        }
+
+        function startTask() {
+            trials = parseInt(document.getElementById('trials').value);
+            cueDuration = parseInt(document.getElementById('cueDuration').value);
+            stimulusDuration = parseInt(document.getElementById('stimulusDuration').value);
+            isi = parseInt(document.getElementById('isi').value);
+
+            document.getElementById('instructions').style.display = 'none';
+            document.getElementById('taskArea').style.display = 'block';
+            document.getElementById('taskArea').classList.add('fullscreen');
+            document.addEventListener('keydown', handleKeyPress);
+
+            // Hide language toggle during task
+            document.getElementById('languageToggle').style.display = 'none';
+
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.mozRequestFullScreen) {
+                elem.mozRequestFullScreen();
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+
+            runTrial();
+        }
+
+        function runTrial() {
+            if (currentTrial >= trials) {
+                endTask();
+                return;
+            }
+
+            stimulusShown = false;
+            currentCue = Math.random() < 0.5 ? '←' : '→';
+            targetSide = Math.random() < 0.5 ? 'left' : 'right';
+            const isCongruent = (currentCue === '←' && targetSide === 'left') || (currentCue === '→' && targetSide === 'right');
+            
+            document.getElementById('cue').textContent = currentCue;
+            
+            setTimeout(() => {
+                document.getElementById('cue').textContent = '';
+                setTimeout(() => {
+                    document.getElementById(targetSide).style.display = 'block';
+                    stimulusShown = true;
+                    startTime = Date.now();
+                    setTimeout(() => {
+                        if (stimulusShown) {
+                            document.getElementById(targetSide).style.display = 'none';
+                            stimulusShown = false;
+                        }
+                        setTimeout(runTrial, isi);
+                    }, stimulusDuration);
+                }, cueDuration);
+            }, 500);
+
+            currentTrial++;
+            if (isCongruent) congruentTrials++;
+            else incongruentTrials++;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                handleResponse(event.key === 'ArrowLeft' ? 'left' : 'right');
+            }
+        }
+
+        function handleResponse(response) {
+            if (!stimulusShown) {
+                earlyResponses++;
+                return;
+            }
+
+            const endTime = Date.now();
+            const rt = endTime - startTime;
+            const isCongruent = (currentCue === '←' && targetSide === 'left') || (currentCue === '→' && targetSide === 'right');
+
+            allReactionTimes.push({trial: currentTrial, rt: rt, isCongruent: isCongruent});
+
+            if (isCongruent) {
+                congruentRT.push(rt);
+                if (response === targetSide) congruentCorrect++;
+            } else {
+                incongruentRT.push(rt);
+                if (response === targetSide) incongruentCorrect++;
+            }
+
+            document.getElementById(targetSide).style.display = 'none';
+            stimulusShown = false;
+        }
+
+        function endTask() {
+            document.removeEventListener('keydown', handleKeyPress);
+            document.getElementById('taskArea').classList.remove('fullscreen');
+            document.getElementById('taskArea').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+
+            // Show language toggle after task completion
+            document.getElementById('languageToggle').style.display = 'block';
+
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+
+            const avgCongruentRT = congruentRT.reduce((a, b) => a + b, 0) / congruentRT.length || 0;
+            const avgIncongruentRT = incongruentRT.reduce((a, b) => a + b, 0) / incongruentRT.length || 0;
+            const congruentAccuracy = (congruentCorrect / congruentTrials) * 100 || 0;
+            const incongruentAccuracy = (incongruentCorrect / incongruentTrials) * 100 || 0;
+
+            const rtDifference = avgIncongruentRT - avgCongruentRT;
+            const congruentErrors = congruentTrials - congruentCorrect;
+            const incongruentErrors = incongruentTrials - incongruentCorrect;
+            const totalErrors = congruentErrors + incongruentErrors;
+
+            document.getElementById('rtDifference').textContent = `${rtDifference.toFixed(2)} ms`;
+            document.getElementById('earlyResponsesCount').textContent = earlyResponses;
+            document.getElementById('congruentErrors').textContent = congruentErrors;
+            document.getElementById('incongruentErrors').textContent = incongruentErrors;
+            document.getElementById('totalErrors').textContent = totalErrors;
+
+            const rtCtx = document.getElementById('reactionTimeChart').getContext('2d');
+            reactionTimeChart = new Chart(rtCtx, {
+                type: 'bar',
+                data: {
+                    labels: [
+                        currentLanguage === 'en' ? 'Congruent Trials' : 'Ensayos Congruentes',
+                        currentLanguage === 'en' ? 'Incongruent Trials' : 'Ensayos Incongruentes'
+                    ],
+                    datasets: [{
+                        label: currentLanguage === 'en' ? 'Average Reaction Time (ms)' : 'Tiempo de Reacción Promedio (ms)',
+                        data: [avgCongruentRT, avgIncongruentRT],
+                        backgroundColor: ['rgba(52, 152, 219, 0.6)', 'rgba(231, 76, 60, 0.6)']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: currentLanguage === 'en' ? 'Reaction Time (ms)' : 'Tiempo de Reacción (ms)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            const accCtx = document.getElementById('accuracyChart').getContext('2d');
+            accuracyChart = new Chart(accCtx, {
+                type: 'bar',
+                data: {
+                    labels: [
+                        currentLanguage === 'en' ? 'Congruent Trials' : 'Ensayos Congruentes',
+                        currentLanguage === 'en' ? 'Incongruent Trials' : 'Ensayos Incongruentes'
+                    ],
+                    datasets: [{
+                        label: currentLanguage === 'en' ? 'Accuracy (%)' : 'Precisión (%)',
+                        data: [congruentAccuracy, incongruentAccuracy],
+                        backgroundColor: ['rgba(52, 152, 219, 0.6)', 'rgba(231, 76, 60, 0.6)']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: currentLanguage === 'en' ? 'Accuracy (%)' : 'Precisión (%)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            const timelineCtx = document.getElementById('timelineChart').getContext('2d');
+            timelineChart = new Chart(timelineCtx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: currentLanguage === 'en' ? 'Congruent Trials' : 'Ensayos Congruentes',
+                        data: allReactionTimes.filter(item => item.isCongruent).map(item => ({x: item.trial, y: item.rt})),
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                        fill: false,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }, {
+                        label: currentLanguage === 'en' ? 'Incongruent Trials' : 'Ensayos Incongruentes',
+                        data: allReactionTimes.filter(item => !item.isCongruent).map(item => ({x: item.trial, y: item.rt})),
+                        borderColor: 'rgba(231, 76, 60, 1)',
+                        backgroundColor: 'rgba(231, 76, 60, 0.2)',
+                        fill: false,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: currentLanguage === 'en' ? 'Reaction Time (ms)' : 'Tiempo de Reacción (ms)'
+                            }
+                        },
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: currentLanguage === 'en' ? 'Trial Number' : 'Número de Ensayo'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function resetTask() {
+            currentTrial = 0;
+            congruentRT = [];
+            incongruentRT = [];
+            congruentCorrect = 0;
+            incongruentCorrect = 0;
+            congruentTrials = 0;
+            incongruentTrials = 0;
+            allReactionTimes = [];
+            earlyResponses = 0;
+            if (reactionTimeChart) reactionTimeChart.destroy();
+            if (accuracyChart) accuracyChart.destroy();
+            if (timelineChart) timelineChart.destroy();
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('controls').style.display = 'block';
+        }
+
+        // Initialize language
+        changeLanguage('es');
+    </script>
+</body>
+</html>
